@@ -7,12 +7,9 @@ knit: (function(inputFile, encoding) {
   
 ---
 
-
-
-Current version and code:
+Current version and code:https://github.com/mcc-apsis/Social-outcomes-of-climate-policies/tree/master/Results
 
 Latest update: `r format(Sys.time(), '%d %B, %Y, %H:%M')`
-
 
 
 
