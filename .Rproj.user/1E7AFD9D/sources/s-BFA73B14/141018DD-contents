@@ -1,0 +1,277 @@
+---
+title: "social outcomes of climate policies"
+author: "William F. Lamb"
+output: word_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../Results") })
+  
+---
+
+
+
+Current version and code:
+
+Latest update: `r format(Sys.time(), '%d %B, %Y, %H:%M')`
+
+
+
+
+```{r download, include=FALSE, echo=FALSE}
+
+rm(list = ls(all.names = TRUE))
+library(tidyverse)
+library(gsheet)
+library(janitor)
+library(ggpubr)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(xlsx)
+
+headers <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1917551092')
+
+#test set
+doc_list <- c(1591994,232156,882724,652574,819012,768313,108969,1987870,2276884,768638,549181,720449,651829,766526,513485)
+
+Will <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=592138739') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Will")
+
+Kilian <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=2089679896') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Kilian") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Miklos <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1862585380') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Miklos") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Katharina <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=184695206') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Katharina") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Lina <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1004972434') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Lina") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Mike <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1122246904') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Mike") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Benjamin <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=79430810') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Benjamin") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Laurence <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1709154353') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Laurence") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+Finn <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1040431299') %>% 
+  `colnames<-`(names(headers)) %>% 
+  clean_names() %>% 
+  filter(!is.na(document_id)) %>% 
+  filter(document_id!="Document ID") %>% 
+  filter(!is.na(title)) %>% 
+  mutate(coder="Finn") %>%
+  mutate(document_id=as.numeric(document_id)) %>% 
+  filter(!document_id %in% doc_list)
+
+all <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=408167186')
+
+
+```
+
+
+```{r merge,include=FALSE, echo=FALSE}
+
+docs_full <- rbind(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos)
+rm(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos,headers)
+
+docs <- docs_full %>% 
+  distinct() %>% 
+  filter(include=="Yes") %>% 
+  mutate(year=as.numeric(year))
+
+
+
+```
+
+## Literature and methods
+
+```{r literature,echo=FALSE,warning=FALSE,fig.width=10,fig.height=6}
+
+literature <- docs %>% 
+  select(document_id,publication,year,method_1,method_2,method_3)
+
+p1 <- literature %>% 
+  distinct() %>% 
+  group_by(year) %>% 
+  summarise(n=n()) %>% 
+  ggplot(.,aes(x=year,y=n)) +
+  geom_bar(stat='identity') +
+  xlab("Year of publication") +
+  theme_bw() +
+  theme(legend.position="none",
+        axis.title.y = element_blank()) 
+
+p2 <- literature %>% 
+  distinct() %>% 
+  group_by(publication) %>% 
+  summarise(n=n()) %>% 
+  filter(n>1) %>% 
+  ggplot(.,aes(x=reorder(publication,n),y=n)) +
+  geom_bar(stat='identity') +
+  ylab("Number of articles") +
+  coord_flip() +
+  theme_bw() +
+  theme(legend.position="none",
+        axis.title.y = element_blank()) 
+
+p3 <- gather(literature,key,method,method_1:method_3) %>% 
+  group_by(method) %>% 
+  summarise(n=n()) %>% 
+  filter(!is.na(method)) %>% 
+  ggplot(.,aes(x=reorder(method,n),y=n)) +
+  geom_bar(stat='identity') +
+  ylab("Number of cases") +
+  coord_flip() +
+  theme_bw() +
+  theme(legend.position="none",
+        axis.title.y = element_blank()) 
+
+
+z <- ggarrange(p2,p3,ncol=1,nrow=2,align="v")
+ggarrange(z,p1,ncol=2,widths=c(0.70,0.3),align="v")
+
+
+```
+
+
+## Policies and geographic coverage
+
+```{r policies,echo=FALSE,warning=FALSE,fig.width=10,fig.height=6}
+
+isos <- read.xlsx(file="C:\\Users\\lamw\\Documents\\SpiderOak Hive\\Work\\Code\\R\\.Place names and codes\\output\\ISOcodes.xlsx",sheetName="alternative_names")
+
+
+policies <- docs %>% 
+  select(document_id,country,subnational_case_location,policy_type_1,policy_type_2,policy_type_3,scope_of_policy,policy_location_if_subnational,policy_name,policy_date_start,policy_date_end) %>% 
+  mutate(country=tolower(country)) %>%
+  mutate(scope_of_policy=as.factor(scope_of_policy))
+
+policies <- left_join(policies,isos,by=c("country"="alternative.name"))
+
+
+
+world <- map_data("world") %>% 
+  filter(region!="Antarctica")
+world <- left_join(world %>% mutate(region=tolower(region)),isos,by=c("region"="alternative.name"))
+world <- left_join(world,policies %>%
+                     group_by(alpha.3) %>% 
+                     summarise(n=n()),by=c("alpha.3"="alpha.3"))
+
+## to check if none joined
+#blarg <- anti_join(policies %>% select(document_id,country,subnational_case_location),world,by=c("country"="region"))
+
+
+ggplot() + 
+  geom_polygon(data = world, aes(x=long, y = lat, group=group, fill=n),color="white",na.rm=T) + 
+  theme_void() +
+  coord_fixed(1) +
+  scale_fill_continuous(trans = 'reverse',na.value='#969696') +
+  guides(fill = guide_legend(reverse = TRUE))
+
+############## DO CHECKS ON DATA ####################
+policies <- policies %>% 
+  filter(!is.na(scope_of_policy))
+
+policies$scope_of_policy <- factor(policies$scope_of_policy,levels(policies$scope_of_policy)[c(3,4,1,2)])
+
+policies %>%
+  group_by(country,scope_of_policy) %>% 
+  summarise(n=n()) %>% 
+  ggplot(.,aes(x=reorder(country,n),y=n,fill=scope_of_policy)) +
+  geom_bar(stat='identity') +
+  coord_flip() +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank())
+
+
+blarg <- gather(policies,key,policy,policy_type_1:policy_type_3) %>% 
+  filter(!is.na(policy))
+
+blarg %>% 
+  group_by(policy) %>% 
+  summarise(n=n()) %>% 
+  ggplot(.,aes(x=reorder(policy,n),y=n)) + 
+  geom_bar(stat='identity') +
+  coord_flip() +
+  theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank())
+
+
+blarg %>% 
+  group_by(country,policy) %>% 
+  summarise(n=n()) %>% 
+  ggplot(.,aes(country,policy)) +
+  geom_tile(aes(fill=n),colour="grey50") +
+  geom_text(aes(label=n)) +
+  scale_fill_distiller(palette = "YlGnBu",direction=1,na.value = "grey") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust=1,vjust=1),
+        axis.title.y=element_blank(),
+        axis.title.x=element_blank()) + 
+  guides(fill=FALSE) 
+
+
+
+
+
+```

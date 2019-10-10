@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1570696520987.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "92DBCC01",
+    "lastKnownWriteTime" : 2271618915688,
+    "last_content_update" : 1570696520987,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "E234844",
+        "caption" : "Benjamin",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=Benjamin&cache_key=E234844",
+        "displayedObservations" : "1",
+        "environment" : "",
+        "expression" : "Benjamin",
+        "object" : "Benjamin",
+        "preview" : "0",
+        "totalObservations" : "1",
+        "variables" : "79"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

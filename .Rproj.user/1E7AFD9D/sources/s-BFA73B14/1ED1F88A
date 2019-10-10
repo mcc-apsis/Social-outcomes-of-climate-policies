@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1570706947211.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "1ED1F88A",
+    "lastKnownWriteTime" : 28429470871257198,
+    "last_content_update" : 1570706947211,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "FA2C4E8C",
+        "caption" : "isos",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=isos&cache_key=FA2C4E8C",
+        "displayedObservations" : 755,
+        "environment" : "",
+        "expression" : "isos",
+        "object" : "isos",
+        "preview" : 0,
+        "totalObservations" : 755,
+        "variables" : 2
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
