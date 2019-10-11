@@ -24,6 +24,8 @@ library(ggmap)
 library(maps)
 library(mapdata)
 library(xlsx)
+library(scales)
+library(flextable)
 
 headers <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwMM0QNXwpPqDGRa6tgrdYH2A/edit#gid=1917551092')
 
@@ -126,15 +128,32 @@ all <- gsheet2tbl('https://docs.google.com/spreadsheets/d/1oe-wWvphpTlwZtrELPMwM
 
 ```{r merge,include=FALSE, echo=FALSE}
 
+isos <- read.xlsx(file="C:\\Users\\lamw\\Documents\\SpiderOak Hive\\Work\\Code\\R\\.Place names and codes\\output\\ISOcodes.xlsx",sheetName="alternative_names")
+
+nicenames <- read.xlsx(file="C:\\Users\\lamw\\Documents\\SpiderOak Hive\\Work\\Code\\R\\.Place names and codes\\output\\ISOcodes.xlsx",sheetName="ISO_master") %>% 
+  select(nicename=Country,Code)
+
+
 docs_full <- rbind(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos)
-rm(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos,headers)
+#rm(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos,headers)
 
 docs <- docs_full %>% 
   distinct() %>% 
   filter(include=="Yes") %>% 
   mutate(year=as.numeric(year))
 
+docs <- docs %>% 
+  mutate(publication=tolower(publication)) %>% 
+  mutate(publication=str_to_title(publication)) %>% 
+  mutate(country=tolower(country))
 
+
+docs <- left_join(docs,isos,by=c("country"="alternative.name"))
+docs <- left_join(docs,nicenames,by=c("alpha.3"="Code"))
+
+docs <- docs %>% 
+  select(-country) %>% 
+  select(document_id,country=nicename,alpha.3,everything())
 
 ```
 
@@ -154,7 +173,8 @@ p1 <- literature %>%
   xlab("Year of publication") +
   theme_bw() +
   theme(legend.position="none",
-        axis.title.y = element_blank()) 
+        axis.title.y = element_blank()) +
+  ggtitle("c. Literature by year")
 
 p2 <- literature %>% 
   distinct() %>% 
@@ -163,11 +183,13 @@ p2 <- literature %>%
   filter(n>1) %>% 
   ggplot(.,aes(x=reorder(publication,n),y=n)) +
   geom_bar(stat='identity') +
-  ylab("Number of articles") +
+  ylab("No. articles") +
   coord_flip() +
   theme_bw() +
   theme(legend.position="none",
-        axis.title.y = element_blank()) 
+        axis.title.y = element_blank())  +
+  ggtitle("a. Top journals") + 
+  scale_y_continuous(breaks= pretty_breaks())
 
 p3 <- gather(literature,key,method,method_1:method_3) %>% 
   group_by(method) %>% 
@@ -175,11 +197,13 @@ p3 <- gather(literature,key,method,method_1:method_3) %>%
   filter(!is.na(method)) %>% 
   ggplot(.,aes(x=reorder(method,n),y=n)) +
   geom_bar(stat='identity') +
-  ylab("Number of cases") +
+  ylab("No. studies") +
   coord_flip() +
   theme_bw() +
   theme(legend.position="none",
-        axis.title.y = element_blank()) 
+        axis.title.y = element_blank())  +
+  ggtitle("b. Methods") + 
+  scale_y_continuous(breaks= pretty_breaks())
 
 
 z <- ggarrange(p2,p3,ncol=1,nrow=2,align="v")
@@ -193,15 +217,10 @@ ggarrange(z,p1,ncol=2,widths=c(0.70,0.3),align="v")
 
 ```{r policies,echo=FALSE,warning=FALSE,fig.width=10,fig.height=6}
 
-isos <- read.xlsx(file="C:\\Users\\lamw\\Documents\\SpiderOak Hive\\Work\\Code\\R\\.Place names and codes\\output\\ISOcodes.xlsx",sheetName="alternative_names")
-
-
 policies <- docs %>% 
-  select(document_id,country,subnational_case_location,policy_type_1,policy_type_2,policy_type_3,scope_of_policy,policy_location_if_subnational,policy_name,policy_date_start,policy_date_end) %>% 
-  mutate(country=tolower(country)) %>%
+  select(document_id,country,alpha.3,subnational_case_location,policy_type_1,policy_type_2,policy_type_3,scope_of_policy,policy_location_if_subnational,policy_name,policy_date_start,policy_date_end) %>% 
   mutate(scope_of_policy=as.factor(scope_of_policy))
 
-policies <- left_join(policies,isos,by=c("country"="alternative.name"))
 
 
 
@@ -221,7 +240,8 @@ ggplot() +
   theme_void() +
   coord_fixed(1) +
   scale_fill_continuous(trans = 'reverse',na.value='#969696') +
-  guides(fill = guide_legend(reverse = TRUE))
+  guides(fill = guide_legend(reverse = TRUE)) +
+  ggtitle("Country coverage in ex-post policy studies")
 
 ############## DO CHECKS ON DATA ####################
 policies <- policies %>% 
@@ -237,21 +257,27 @@ policies %>%
   coord_flip() +
   theme_bw() +
   theme(axis.title.y = element_blank(),
-        axis.title.x = element_blank())
+        axis.title.x = element_blank()) +
+  labs(fill="Scope of policy") +
+  ggtitle("Country coverage and scope of policies")
 
 
 blarg <- gather(policies,key,policy,policy_type_1:policy_type_3) %>% 
   filter(!is.na(policy))
+blarg$policy <- as.factor(blarg$policy)
+
 
 blarg %>% 
-  group_by(policy) %>% 
+  group_by(policy,scope_of_policy) %>% 
   summarise(n=n()) %>% 
-  ggplot(.,aes(x=reorder(policy,n),y=n)) + 
+  ggplot(.,aes(x=policy,y=n,fill=scope_of_policy)) +
   geom_bar(stat='identity') +
   coord_flip() +
   theme_bw() +
   theme(axis.title.y = element_blank(),
-        axis.title.x = element_blank())
+        axis.title.x = element_blank()) +
+  labs(fill="Scope of policy") +
+  ggtitle("Policy type and scope")
 
 
 blarg %>% 
@@ -265,9 +291,122 @@ blarg %>%
   theme(axis.text.x=element_text(angle=45,hjust=1,vjust=1),
         axis.title.y=element_blank(),
         axis.title.x=element_blank()) + 
-  guides(fill=FALSE) 
+  guides(fill=FALSE) +
+  ggtitle("Policy by country")
 
 
+
+```
+```{r social_outcomes,echo=FALSE,warning=FALSE,fig.width=10,fig.height=6}
+
+
+social_outcomes <- docs %>% 
+  select(document_id,country,alpha.3,policy_name,policy_type_1,policy_type_2,policy_type_3,policy_location_if_subnational,social_outcome_1_type,social_outcome_1_outcome,social_outcome_1_population,social_outcome_2_type,social_outcome_2_outcome,social_outcome_2_population,social_outcome_3_type,social_outcome_3_outcome,social_outcome_3_population,social_outcome_4_type,social_outcome_4_outcome,social_outcome_4_population)
+
+######### function
+
+policy_outcomes <- function(policy,data) { 
+
+  z <- gather(data,key,value,policy_type_1:policy_type_3)
+  
+  z <- z %>% 
+    filter_at(vars(value),all_vars(.==policy)) %>% 
+    select(-key,-value)
+  
+  world <- map_data("world") %>% 
+    filter(region!="Antarctica")
+  world <- left_join(world %>% mutate(region=tolower(region)),isos,by=c("region"="alternative.name"))
+  world <- left_join(world,z,by=c("alpha.3"="alpha.3")) 
+  world <- world %>% 
+    mutate(check=ifelse(is.na(document_id),NA,1))
+  
+  p <- ggplot() + 
+    geom_polygon(data = world, aes(x=long, y = lat, group=group, fill=check),color="white",na.rm=T) + 
+    theme_void() +
+    coord_fixed(1) +
+    scale_fill_continuous(trans = 'reverse',na.value='#969696') +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    theme(legend.position="none") +
+    ggtitle(policy)
+  
+  
+  new_rows_1 <- z %>% 
+    filter(!is.na(social_outcome_1_type)) %>% 
+    mutate(social_outcome_type=social_outcome_1_type) %>% 
+    mutate(social_outcome=social_outcome_1_outcome) %>% 
+    mutate(social_outcome_population=social_outcome_1_population) %>% 
+    select(document_id,country,policy_name,policy_location_if_subnational,social_outcome_type,social_outcome,social_outcome_population)
+  
+  new_rows_2 <- z %>% 
+    filter(!is.na(social_outcome_2_type)) %>% 
+    mutate(social_outcome_type=social_outcome_2_type) %>% 
+    mutate(social_outcome=social_outcome_2_outcome) %>% 
+    mutate(social_outcome_population=social_outcome_2_population) %>% 
+    select(document_id,country,policy_name,policy_location_if_subnational,social_outcome_type,social_outcome,social_outcome_population)
+  
+  new_rows_3 <- z %>% 
+    filter(!is.na(social_outcome_3_type)) %>% 
+    mutate(social_outcome_type=social_outcome_3_type) %>% 
+    mutate(social_outcome=social_outcome_3_outcome) %>% 
+    mutate(social_outcome_population=social_outcome_3_population) %>% 
+    select(document_id,country,policy_name,policy_location_if_subnational,social_outcome_type,social_outcome,social_outcome_population)
+  
+  new_rows_4 <- z %>% 
+    filter(!is.na(social_outcome_4_type)) %>% 
+    mutate(social_outcome_type=social_outcome_4_type) %>% 
+    mutate(social_outcome=social_outcome_4_outcome) %>% 
+    mutate(social_outcome_population=social_outcome_4_population) %>% 
+    select(document_id,country,policy_name,policy_location_if_subnational,social_outcome_type,social_outcome,social_outcome_population)
+  
+  z <- rbind(new_rows_1,new_rows_2,new_rows_3,new_rows_4) %>% 
+    arrange(country) %>% 
+    select(-document_id,-policy_location_if_subnational)
+  
+  return(list("plot"=p,"data"=z))
+  
+}
+
+make_table <- function(data) {
+  
+  ft <- flextable(data,col_keys=names(data))
+  ft <- autofit(ft)
+  ft <- fontsize(ft, size = 8,part="all")
+  ft <- height_all(ft,0.1)
+  ft <- width(ft,j=3,width=5)
+  ft <- align(ft,align="left",part="all")
+  ft <- fit_to_width(ft, max_width = 8)
+  
+  return(ft)
+}
+
+
+##### retrofits
+
+blarg <- policy_outcomes("Subsidy (energy efficiency retrofits)",social_outcomes)
+blarg$plot
+cat('  \n')
+ft <- make_table(blarg$data)
+ft
+cat('  \n')
+
+
+##### renewable
+
+blarg <- policy_outcomes("Grid-level renewable deployment",social_outcomes)
+blarg$plot
+cat('  \n')
+ft <- make_table(blarg$data)
+ft
+cat('  \n')
+
+##### FIT solar
+
+blarg <- policy_outcomes("Feed in Tariff (solar)",social_outcomes)
+blarg$plot
+cat('  \n')
+ft <- make_table(blarg$data)
+ft
+cat('  \n')
 
 
 
