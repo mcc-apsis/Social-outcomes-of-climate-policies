@@ -135,7 +135,7 @@ nicenames <- read.xlsx(file="C:\\Users\\lamw\\Documents\\SpiderOak Hive\\Work\\C
 
 
 docs_full <- rbind(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos)
-#rm(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos,headers)
+rm(Will,Mike,Benjamin,Finn,Katharina,Kilian,Laurence,Lina,Miklos,headers)
 
 docs <- docs_full %>% 
   distinct() %>% 
@@ -154,6 +154,10 @@ docs <- left_join(docs,nicenames,by=c("alpha.3"="Code"))
 docs <- docs %>% 
   select(-country) %>% 
   select(document_id,country=nicename,alpha.3,everything())
+
+#how many left to go?
+
+zz <- anti_join(all,docs_full,by=c("X2"="document_id"))
 
 ```
 
@@ -408,6 +412,24 @@ ft <- make_table(blarg$data)
 ft
 cat('  \n')
 
+##### legislation
+
+blarg <- policy_outcomes("Overarching legislation with multiple policies (e.g. Energiewende)",social_outcomes)
+blarg$plot
+cat('  \n')
+ft <- make_table(blarg$data)
+ft
+cat('  \n')
+
+
+##### Energy/fuel taxes
+
+blarg <- policy_outcomes("Tax (energy/fuel)",social_outcomes)
+blarg$plot
+cat('  \n')
+ft <- make_table(blarg$data)
+ft
+cat('  \n')
 
 
 ```
